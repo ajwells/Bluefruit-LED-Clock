@@ -21,20 +21,21 @@ void error(const __FlashStringHelper*err) {
   while (1);
 }
 /* ----GUIDS---- */
-
 //LED Power
 #define LEDPOWERSERVICE     "A3-AA-7E-F1-FC-73-42-4A-83-A8-5C-99-A9-05-A4-D3"
 #define LEDPOWERSTATUSCHAR  "B4-9B-1D-22-2C-A7-44-8B-B9-8A-11-85-C5-32-85-53"
 
-/* The service information */
+/* ----Advertisements---- */
+#define FLAGSADV            "02-01-06"
+//Device Information Service
+#define SERVICES16BITADV    "03-02-0D-18"
+//LED Power Service 
+#define SERVICES128BITADV   "11-06-D3-A4-05-A9-99-5C-A8-83-4A-42-73-FC-F1-7E-AA-A3"  
 
+/* ----Custom Service ID's---- */
 int32_t ledPowerServiceId;
 int32_t ledPowerStatusCharId;
-/**************************************************************************/
-/*!
-    @brief  Sets up the HW an the BLE module
-*/
-/**************************************************************************/
+
 void setup(void)
 {
   while (!Serial); // required for Flora & Micro
@@ -55,7 +56,7 @@ void setup(void)
   }
   Serial.println( F("OK!") );
 
-  /* Perform a factory reset to make sure everything is in a known state */
+  /* Perform a factory reset */
   Serial.println(F("Performing a factory reset: "));
   if (! ble.factoryReset() ){
        error(F("Couldn't factory reset"));
@@ -68,38 +69,34 @@ void setup(void)
   /* Print Bluefruit information */
   ble.info();
 
-  // this line is particularly required for Flora, but is a good idea
-  // anyways for the super long lines ahead!
   // ble.setInterCharWriteDelay(5); // 5 ms
 
-  /* Change the device name to make it easier to find */
+  /* Change the device name */
   Serial.println(F("Setting device name to 'Bluefruit LED Clock': "));
 
   if (! ble.sendCommandCheckOK(F("AT+GAPDEVNAME=Bluefruit LED Clock")) ) {
     error(F("Could not set device name?"));
   }
 
-  /* Add the LED Power Service definition */
-  /* Service ID should be 1 */
+  /* Add the LED Power Service */
   Serial.println(F("Adding the LED Power Service (UUID = " LEDPOWERSERVICE "): "));
   success = ble.sendCommandWithIntReply( F("AT+GATTADDSERVICE=UUID128=" LEDPOWERSERVICE), &ledPowerServiceId);
   if (! success) {
     error(F("Could not add HRM service"));
   }
 
-  /* Add the Heart Rate Measurement characteristic */
-  /* Chars ID for Measurement should be 1 */
+  /* Add the LED Power Status Characteristic */
   Serial.println(F("Adding the LED Power Status characteristic (UUID = " LEDPOWERSTATUSCHAR "): "));
   success = ble.sendCommandWithIntReply( F("AT+GATTADDCHAR=UUID128=" LEDPOWERSTATUSCHAR 
-    ", PROPERTIES=0x1A, MIN_LEN=1, MAX_LEN=3, VALUE=OFF"), &ledPowerStatusCharId);
+    ", PROPERTIES=0x1A, MIN_LEN=2, MAX_LEN=3, VALUE=OFF"), &ledPowerStatusCharId);
   if (! success) {
     error(F("Could not add HRM characteristic"));
   }
-  /*
-  // Add the Heart Rate Service to the advertising data (needed for Nordic apps to detect the service) 
-  Serial.print(F("Adding Heart Rate Service UUID to the advertising payload: "));
-  ble.sendCommandCheckOK( F("AT+GAPSETADVDATA=" + LEDPOWERSERVICE) );
-  */
+  
+  // Add LED Power to the advertising packet 
+  Serial.print(F("Creating advertising payload: "));
+  ble.sendCommandCheckOK( F("AT+GAPSETADVDATA=" FLAGSADV "-" SERVICES16BITADV "-" SERVICES128BITADV) );
+
   /* Reset the device for the new service setting changes to take effect */
   Serial.print(F("Performing a SW reset (service changes require a reset): "));
   ble.reset();

@@ -1,12 +1,14 @@
 #Bluefruit-LED-Clock
-Bluefruit LED Clock
 
+##Device Name
+
+####Bluefruit LED Clock
 
 ##Services
 
 ###LED Power Service
 
-UUID: ```A3-AA-7E-F1-FC-73-42-4A-83-A8-5C-99-A9-05-A4-D3```
+	UUID: A3-AA-7E-F1-FC-73-42-4A-83-A8-5C-99-A9-05-A4-D3
 
 ####Characteristics
 
