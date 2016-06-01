@@ -21,18 +21,25 @@ void error(const __FlashStringHelper*err) {
   while (1);
 }
 /* ----GUIDS---- */
+//IOT Identifier
+#define IOTIDENTSERVICE     "0D-BB-9A-2D-39-DE-45-90-8E-AC-BF-DE-F6-50-41-6F"
+#define IOTIDENTNAMECHAR    "3C-66-21-11-38-F8-4A-8E-BD-D6-1E-0A-5F-40-32-77"
+
 //LED Power
 #define LEDPOWERSERVICE     "A3-AA-7E-F1-FC-73-42-4A-83-A8-5C-99-A9-05-A4-D3"
 #define LEDPOWERSTATUSCHAR  "B4-9B-1D-22-2C-A7-44-8B-B9-8A-11-85-C5-32-85-53"
 
 /* ----Advertisements---- */
+//Bluetooth Flags
 #define FLAGSADV            "02-01-06"
 //Device Information Service
 #define SERVICES16BITADV    "03-02-0A-18"
-//LED Power Service 
-#define SERVICES128BITADV   "11-06-D3-A4-05-A9-99-5C-A8-83-4A-42-73-FC-F1-7E-AA-A3"  
+//IOT Identifier Service 
+#define SERVICES128BITADV   "11-06-6F-41-50-F6-DE-BF-AC-8E-90-45-DE-39-2D-9A-BB-0D"  
 
 /* ----Custom Service ID's---- */
+int32_t iotIdentServiceId;
+int32_t iotIdentNameCharId;
 int32_t ledPowerServiceId;
 int32_t ledPowerStatusCharId;
 
@@ -78,11 +85,26 @@ void setup(void)
     error(F("Could not set device name?"));
   }
 
+  /* Add the IOT Identifier Service */
+  Serial.println(F("Adding the IOT Identifier Service (UUID = " IOTIDENTSERVICE "): "));
+  success = ble.sendCommandWithIntReply( F("AT+GATTADDSERVICE=UUID128=" IOTIDENTSERVICE), &iotIdentServiceId);
+  if (! success) {
+    error(F("Could not add IOT Identifier service"));
+  }
+
+  /* Add the IOT Identifier Name Characteristic */
+  Serial.println(F("Adding the LED Power Status characteristic (UUID = " IOTIDENTNAMECHAR "): "));
+  success = ble.sendCommandWithIntReply( F("AT+GATTADDCHAR=UUID128=" IOTIDENTNAMECHAR 
+    ", PROPERTIES=0x02, MIN_LEN=9, MAX_LEN=9, VALUE=WELLS_IOT"), &iotIdentNameCharId);
+  if (! success) {
+    error(F("Could not add IOT Identifier Name characteristic"));
+  }
+  
   /* Add the LED Power Service */
   Serial.println(F("Adding the LED Power Service (UUID = " LEDPOWERSERVICE "): "));
   success = ble.sendCommandWithIntReply( F("AT+GATTADDSERVICE=UUID128=" LEDPOWERSERVICE), &ledPowerServiceId);
   if (! success) {
-    error(F("Could not add HRM service"));
+    error(F("Could not add LED Power service"));
   }
 
   /* Add the LED Power Status Characteristic */
@@ -90,10 +112,10 @@ void setup(void)
   success = ble.sendCommandWithIntReply( F("AT+GATTADDCHAR=UUID128=" LEDPOWERSTATUSCHAR 
     ", PROPERTIES=0x1A, MIN_LEN=2, MAX_LEN=3, VALUE=OFF"), &ledPowerStatusCharId);
   if (! success) {
-    error(F("Could not add HRM characteristic"));
+    error(F("Could not add LED Power Status characteristic"));
   }
   
-  // Add LED Power to the advertising packet 
+  /* Add IOT Identifier Service to the advertising packet */
   Serial.print(F("Creating advertising payload: "));
   ble.sendCommandCheckOK( F("AT+GAPSETADVDATA=" FLAGSADV "-" SERVICES16BITADV "-" SERVICES128BITADV) );
 
