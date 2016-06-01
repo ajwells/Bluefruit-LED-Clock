@@ -28,7 +28,7 @@ void error(const __FlashStringHelper*err) {
 /* ----Advertisements---- */
 #define FLAGSADV            "02-01-06"
 //Device Information Service
-#define SERVICES16BITADV    "03-02-0D-18"
+#define SERVICES16BITADV    "03-02-0A-18"
 //LED Power Service 
 #define SERVICES128BITADV   "11-06-D3-A4-05-A9-99-5C-A8-83-4A-42-73-FC-F1-7E-AA-A3"  
 
